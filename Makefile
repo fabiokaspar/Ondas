@@ -3,16 +3,14 @@ flags= -g -Wall
 #flags= -g -W -Wall -ansi -pedantic
 
 exec = ep
-objs = ep.o utils.o linkedList.o
-	
+objs = ep.o utils.o linkedList.o lago.o pixel.o ponto.o 
+headers = utils.h linkedList.h globals.h pixel.h ponto.h lago.h
+
 ep: $(objs) -lm
 	$(cc) -o $@ $^
 	@echo "\nCompilou!"
 
-utils.o: utils.c utils.h 
-	$(cc) -c $^ $(flags)
-	
-%.o: %.c utils.h linkedList.h
+%.o: %.c $headers
 	$(cc) -c $^ $(flags)
 
 clean:

@@ -9,5 +9,6 @@ double RandomReal (double low, double high);
 void Randomize(int seed);
 int Euclides(int m, int n);
 float tempoDesdeInicio(struct timeval inicio);
+void dorme(float tSeg);
 
 #endif

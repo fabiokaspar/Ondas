@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include "utils.h"
 
@@ -74,4 +75,9 @@ float tempoDesdeInicio(struct timeval inicio) {
 	timedif = (float)(fim.tv_sec - inicio.tv_sec);
 	timedif += (float)(fim.tv_usec - inicio.tv_usec)/1000000;
 	return timedif;
+}
+
+void dorme(float tSeg) {
+	long long int v = tSeg * 1000000;
+	usleep(v);
 }
