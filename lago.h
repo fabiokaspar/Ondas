@@ -6,6 +6,8 @@
 void inicializaPontosLago();
 void atualizaPontoNoLago(PONTO*);
 void imprimeMatrizLago();
-
+void mapeiaPontoParaLago(PONTO* p);
+int raioMax();
+void liberaLago();
 
 #endif

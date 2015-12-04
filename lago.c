@@ -5,12 +5,11 @@
 #include "globals.h"
 
 void atualizaPontoNoLago(PONTO* foco) {
-	int col = (int)(foco->x/(2*draio));
-	int lin = (int)(foco->y/(2*draio));
-	float modH;
+	int lin = foco->self.lin;
+	int col = foco->self.col;
 
 	lago[lin][col].h += foco->h;
-	//modH = (float) fabs ((double)lago[lin][col].h);
+	//float modH = (float) fabs ((double)lago[lin][col].h);
 
 	//if (modH < epsilon)
 	//	lago[lin][col].h = 0;
@@ -20,6 +19,14 @@ void atualizaPontoNoLago(PONTO* foco) {
 
 	if (lago[lin][col].h < pmax)
 		pmax = lago[lin][col].h;
+}
+
+void mapeiaPontoParaLago(PONTO* p) {
+	int col = (int)(p->x/(2*draio));
+	int lin = (int)(p->y/(2*draio));
+
+	p->self.lin = lin;
+	p->self.col = col;
 }
 
 void inicializaPontosLago() {
@@ -37,7 +44,7 @@ void inicializaPontosLago() {
 			x = Cx * draio;
 			Cx += 2;
 			
-			lago[i][j] = (PONTO){x, y, 0};
+			lago[i][j] = (PONTO){x, y, 0, (POSITION) {i, j}, NULL, NULL};
 		}
 		Cy += 2;
 	}
@@ -52,6 +59,15 @@ void imprimeMatrizLago() {
 		}
 		printf("\n");
 	}
+}
+
+int raioMax() {
+	int max;
+	if (ALT >= LARG)
+		max = ALT;
+	else max = LARG;
+
+	return max;			
 }
 
 void liberaLago() {

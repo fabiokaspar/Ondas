@@ -9,6 +9,7 @@
 #include "globals.h"
 #include "pixel.h"
 #include "lago.h"
+#include <omp.h>
 
 /* ========================== VARIAVEIS GLOBAIS =========================== */
 struct timeval t0;
@@ -22,7 +23,7 @@ void TesteGota();
 int temProximaGota();
 void propagaOndaCircular(PONTO*);
 void propagaOndaPorNivel(float, float, PONTO*);
-void iniciaFocoOnda(PONTO* centro);
+void inicializaFocoOnda(PONTO* centro);
 /*=================================================================== */ 
  
 int main(int argc, char **argv) {
@@ -39,7 +40,12 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "ERRO ao abrir arquivo %s .\n", argv[1]); 
 		exit(0);
 	}
+
 	parser(entrada, argv[2]);
+	
+	omp_set_num_threads(nprocs);
+	printf("Numero de threads: %d\n", nprocs);
+
 	inicializaPontosLago();
 	inicializaImagem();
 
@@ -65,56 +71,70 @@ float calculaAltura(float r, float t) {
 
 void TesteGota() {
 	PONTO gota;
-	gota = sorteiaPonto(larg-0.5, alt-0.5);
+	gota = sorteiaPonto(larg - 0.5, alt - 0.5);
+	
+	inicializaFocoOnda(&gota);
+	mapeiaPontoParaLago(&gota);
+	atualizaPontoNoLago(&gota);
 	propagaOndaCircular(&gota);	
 }
 
 // NIVEL = TODAS AS DIRECOES COM MESMO RAIO
 void propagaOndaPorNivel(float raio, float tempo, PONTO* centro) {
 	float th;
+	int lin, col;
 	PONTO p;
+	
+	lin = (int)(raio/(9 * draio));
 
 	for (th = 0; th < 2 * M_PI; th += dtheta) {
 		if (!searchItem(centro->radiais, th)) { // direcao ja foi propagada ?
 			p = polarEmCartesiano(raio, th, centro);
 		
 			if (pontoEstaDentro(&p)) {
+				mapeiaPontoParaLago(&p);
 				p.h = calculaAltura(raio, tempo);
 				atualizaPontoNoLago(&p);
+				
+				col = (int)(th/dtheta);
+				centro->circle[lin][col] = p.self;
 			} else {
-				// direcao agora eh propagada
+				// direcao ja foi propagada: criterio de parada
 				insertItem(centro->radiais, th);
-			}	
+			}
 		}
 	}
 }
 
-void iniciaFocoOnda(PONTO* centro) {
+void inicializaFocoOnda(PONTO* centro) {
+	int i, j;
+	int R = raioMax();
+
 	centro->radiais = initialize();
-	centro->h = calculaAltura(0, 0); 
-	
-	//centro foi sorteado, não está na matriz lago
-	atualizaPontoNoLago(centro);
+	centro->h = calculaAltura(0, 0);
+	centro->circle = (POSITION**) mallocSafe(R * sizeof(POSITION*));
+
+	for (i = 0; i < R; i++) {
+		centro->circle[i] = (POSITION*) mallocSafe(nradiais * sizeof(POSITION));
+
+		for (j = 0; j < nradiais; j++) {
+			centro->circle[i][j] = (POSITION) {0, 0};
+		}
+	}
 }
 
 void propagaOndaCircular(PONTO* centro) {
-	float r, t;
-
-	iniciaFocoOnda(centro);
-
-	r = 9 * draio;
-	t = 9 * dt;
+	float r = 0, t = 0;
+	
 	while (centro->radiais->total < nradiais) {
 		// precisa dar tempo de chegar no proximo raio
-		//dorme(dt);
-		propagaOndaPorNivel(r, 0.1*t, centro);
-		r += 7 * draio;
-		t += 7 * dt;
+		r += 9 * draio;
+		t += 9 * dt;
+		dorme(9 * dt);
+		propagaOndaPorNivel(r, 0.1 * t, centro);
 	}
-
 	freeAll(centro->radiais);
 }
-
 
 void parser(FILE* entrada, char* argv2) {
 	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%d\n%f\n%f\n%d\n%f\n%d\n", 
