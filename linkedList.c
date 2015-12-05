@@ -9,13 +9,13 @@ Link initialize() {
 	return head;
 }
 
-void insertItem(Link head, float angle) {
+void insertItem(Link head, float altura) {
 	Link novo = (Link) mallocSafe(sizeof(Node));
-	novo->angle = angle;
+	novo->altura = altura;
 	Link lk;
 
 	for (lk = head; lk->next != NULL; lk = lk->next) {
-		if (lk->next->angle > angle) break;
+		if (lk->next->altura > altura) break;
 	}
 
 	novo->next = lk->next;
@@ -23,12 +23,12 @@ void insertItem(Link head, float angle) {
 	head->total++;
 }
 
-int searchItem(Link head, float angle) {
+int searchItem(Link head, float altura) {
 	Link lk;
 
 	if (head->total) {
 		for (lk = head->next; lk != NULL; lk = lk->next) {
-			if (lk->angle == angle) return 1;
+			if (lk->altura == altura) return 1;
 		}
 	}
 	return 0;

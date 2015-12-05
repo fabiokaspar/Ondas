@@ -8,19 +8,18 @@ typedef struct ps {
 	int col;
 } POSITION; // linha e coluna do lago
 
+// NO PLANO CARTESIANO
 typedef struct ponto {
 	float x;
 	float y; 
 	float h;
-	POSITION self; // ponto dele mesmo no lago
-	POSITION** circle; // circulo da onda tendo o ponto como centro
-	Link radiais;
-} PONTO;  // no plano cartesiano
+	POSITION self; // posição do ponto no lago: util para atualizar o h do ponto no lago
+	Link alturas;  // para armazenar o historico das alturas
+} PONTO;
 
 
 PONTO polarEmCartesiano(float, float, PONTO*);
 PONTO sorteiaPonto(float xmax, float ymax);
-PONTO setaPonto(float x, float y, float h, Link radiais);
 int pontoEstaDentro(PONTO*);
 
 #endif

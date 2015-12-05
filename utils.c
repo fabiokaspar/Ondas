@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include "utils.h"
 
+// http://www.ime.usp.br/~pf/algoritmos/aulas/aloca.html
 void* mallocSafe(size_t bytes) {
 	void* p = malloc(bytes);
 	
@@ -57,17 +58,6 @@ void Randomize(int seed)
     srand(seed + time (NULL));
 }
 
-/* MDC(m,n). Ref: http://www.ime.usp.br/~pf/algoritmos/aulas/recu.html */
-int Euclides(int m, int n) {
-   int r;
-   do {
-      r = m % n; 
-      m = n; 
-      n = r;
-   } while (r != 0);
-   return m; 
-}
-
 float tempoDesdeInicio(struct timeval inicio) {
 	struct timeval fim;
 	float timedif;
@@ -78,6 +68,6 @@ float tempoDesdeInicio(struct timeval inicio) {
 }
 
 void dorme(float tSeg) {
-	long long int v = tSeg * 1000000;
+	long long int v = (int)tSeg * 1000000;
 	usleep(v);
 }

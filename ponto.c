@@ -24,6 +24,7 @@ PONTO polarEmCartesiano(float r, float theta, PONTO* origem) {
 	return p;
 }
 
+// apenas sorteia um ponto cartesiano qualquer
 PONTO sorteiaPonto(float xmax, float ymax) {
 	PONTO novo;
 
@@ -31,14 +32,5 @@ PONTO sorteiaPonto(float xmax, float ymax) {
 	novo.x = RandomReal(0.5, xmax);
 	novo.y = RandomReal(0.5, ymax);
 
-	return novo;
-}
-
-PONTO setaPonto(float x, float y, float h, Link radiais) {
-	PONTO novo;
-	novo.x = x;
-	novo.y = y;
-	novo.h = h;
-	novo.radiais = radiais;
 	return novo;
 }

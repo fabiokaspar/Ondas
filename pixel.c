@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "globals.h"
 
+// tira uma foto da matriz lago
 void defineCorPixels() {
 	float delta, h;
 	int i, j;
@@ -31,14 +32,12 @@ void defineCorPixels() {
 			else if (h > 0) {
 				imagem[i][j].red = imagem[i][j].green = 0;
 				imagem[i][j].blue =	((int) ceil((double)(h/delta)));
-				//imagem[i][j].blue =	0;
 			}
 
 			else {
 				h *= (-1);
 				imagem[i][j].blue = imagem[i][j].green = 0;
 				imagem[i][j].red = ((int) ceil((double)(h/delta)));
-				//imagem[i][j].red = 0;
 			}
 		}
 	}
@@ -62,6 +61,7 @@ void liberaImagem() {
 		free(imagem[i]);	
 }
 
+// imprime a foto do lago no arquivo
 void geraPPM(char* fname) {
 	FILE* arq = fopen(fname, "w");
 	int i, j;

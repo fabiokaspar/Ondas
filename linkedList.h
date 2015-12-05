@@ -4,14 +4,14 @@
 typedef struct no* Link;
 
 typedef struct no {
-	float angle;
+	float altura;
 	int total;
 	Link next;
 } Node;
 
 Link initialize();
 void freeAll(Link head);
-void insertItem(Link head, float angle);
-int searchItem(Link head, float angle);
+void insertItem(Link head, float altura);
+int searchItem(Link head, float altura);
 
 #endif

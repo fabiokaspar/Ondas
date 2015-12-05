@@ -1,34 +1,45 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <unistd.h>
-#include <sys/time.h>
 #include "utils.h"
 #include "linkedList.h"
 #include "ponto.h"
 #include "globals.h"
 #include "pixel.h"
 #include "lago.h"
+#include "estatistics.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <unistd.h>
+#include <sys/time.h>
 #include <omp.h>
 
+#define MAXGOTA							100
+
 /* ========================== VARIAVEIS GLOBAIS =========================== */
-struct timeval t0;
+struct timeval iniciostep; 		  // contagem do tempo a cada timestep
+struct timeval t0;				  // contagem da simulação
+
 int nradiais;
-float dt;
-	
+
+POSITION chuva[MAXGOTA];  // vetor que mapeia as posições da matriz lago onde surgem gotas
+int indexG = 0; 		  // inicialmente nenhuma gota caiu
+
 /* ========================== PROTOTIPOS =========================== */ 
 void parser(FILE*, char*);
 float calculaAltura(float, float);
-void TesteGota();
-int temProximaGota();
+void simula();
 void propagaOndaCircular(PONTO*);
-void propagaOndaPorNivel(float, float, PONTO*);
-void inicializaFocoOnda(PONTO* centro);
-/*=================================================================== */ 
+void iniciaFocoDeOnda(PONTO* centro);
+void initializeVariables();
+void geraArquivoEstatistico();
+
+void removeGota(int posRemove);
+void insereGota(POSITION nova);
+int existeGota();
+int temProximaGota();
+void novaGota(PONTO* gota);
+/* =================================================================== */ 
  
 int main(int argc, char **argv) {
-	gettimeofday(&t0, NULL);
-
 	FILE* entrada;
 	if (argc < 3) { 
 		fprintf(stderr, "formato exigido: ./ep <arquivo> <#processadores>\n");
@@ -42,23 +53,65 @@ int main(int argc, char **argv) {
 	}
 
 	parser(entrada, argv[2]);
-	
+	initializeVariables();
+
 	omp_set_num_threads(nprocs);
-	printf("Numero de threads: %d\n", nprocs);
 
 	inicializaPontosLago();
 	inicializaImagem();
 
-	TesteGota();
-	defineCorPixels();
-	geraPPM("ondaTeste.ppm");
-
+	simula();
+	
 	fclose(entrada);
 	liberaImagem();
 	liberaLago();
 	return 0;
 }
 
+void initializeVariables() {
+	// 1/20 é o espaçamento entre as celulas da matriz
+	ALT = 20 * alt;
+	LARG = 20 * larg;
+	draio = (float) 0.025; // metade de 1/20
+	dtheta = (float)(M_PI * 0.01);
+	nradiais = 2 * (int)(M_PI/dtheta);
+	// tempo de deslocamento em draio da frente de onda
+	dt = (float)(draio/v);
+	timestep = (float)(T/NIT);
+}
+
+void geraArquivoEstatistico() {
+	FILE* arq = fopen("estatistica.txt", "w");
+	int i, j;
+	float media, dp;
+
+	fprintf(arq, "pos.x | pos.y | media | desvio_padrao\n\n");
+
+	for (i = 0; i < ALT; i++) 
+	{
+		#pragma omp parallel for private(media, dp) 
+			for (j = 0; j < LARG; j++) 
+			{
+				media = 0;
+				dp = 0;
+				if (lago[i][j].alturas->total) {
+					media = average(lago[i][j].alturas);
+					dp = standardDeviation(lago[i][j].alturas, media);
+					
+					if (dp != 0 || media != 0) {
+						#pragma omp critical
+						{	fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
+								lago[i][j].x, lago[i][j].y, media, dp);	
+						}
+					}
+				}		
+			}
+	}
+	printf("estatistica.txt gerado com sucesso\n");
+	fclose(arq);
+}
+
+// função do enunciado
 float calculaAltura(float r, float t) {	
 	double a = (double)r - (double)v * (double)t;
 	double b = (-1) * pow(a, 2);
@@ -69,107 +122,131 @@ float calculaAltura(float r, float t) {
 	return ((float)h);
 }
 
-void TesteGota() {
-	PONTO gota;
-	gota = sorteiaPonto(larg - 0.5, alt - 0.5);
-	
-	inicializaFocoOnda(&gota);
-	mapeiaPontoParaLago(&gota);
-	atualizaPontoNoLago(&gota);
-	propagaOndaCircular(&gota);	
+void novaGota(PONTO* gota) {
+	mapeiaPontoParaLago(gota);  // localiza o ponto dentro da matriz
+	iniciaFocoDeOnda(gota);		
+	atualizaPontoNoLago(gota); 
+	insereGota(gota->self);  	// insere no vetor chuva
 }
 
-// NIVEL = TODAS AS DIRECOES COM MESMO RAIO
-void propagaOndaPorNivel(float raio, float tempo, PONTO* centro) {
-	float th;
-	int lin, col;
-	PONTO p;
+void simula() {
+	int i;
+	int vaiChover = 0;
+	PONTO gota;
 	
-	lin = (int)(raio/(9 * draio));
-
-	for (th = 0; th < 2 * M_PI; th += dtheta) {
-		if (!searchItem(centro->radiais, th)) { // direcao ja foi propagada ?
-			p = polarEmCartesiano(raio, th, centro);
+	gettimeofday(&t0, NULL); // inicio da simulação
+	
+	for (i = 0; i < NIT; i++) 
+	{
+		printf("# iteracao: %d\n", i);
+		vaiChover = temProximaGota();
 		
-			if (pontoEstaDentro(&p)) {
-				mapeiaPontoParaLago(&p);
-				p.h = calculaAltura(raio, tempo);
-				atualizaPontoNoLago(&p);
+		if (vaiChover) {
+			gota = sorteiaPonto(larg - 0.1, alt - 0.1);
+			novaGota(&gota);
+		}
+		
+		gettimeofday(&iniciostep, NULL);
+		// timestep eh o tempo maximo da iteração
+		while (tempoDesdeInicio(iniciostep) < timestep) {			
+			if (existeGota()) {		
+				// função executada em paralelo
+				propagaOndaCircular(&gota);
+				removeGota(0);
+			}
+			else break; // se não há o que fazer, iteração acabou
+		}	
+		printf("Tempo de duração [it. # %d]: %.3f seg\n\n", i, tempoDesdeInicio(iniciostep));	
+	}
+
+	printf("TEMPO TOTAL: %.3f seg\n", tempoDesdeInicio(t0));
+	defineCorPixels();
+	geraPPM("ondas.ppm");
+	geraArquivoEstatistico();	
+}
+
+// Cada raio é calculado por uma thread 
+// Cada thread calcula uma classe de equivalencia "inteira" da circunferencia
+void propagaOndaCircular(PONTO* centro) {
+	#pragma omp parallel
+	{
+		int id = omp_get_thread_num();
+		float th;
+
+		// olha todos os angulos th's pertinentes a esta thread
+		for (th = id * dtheta; th < 2 * M_PI; th += nprocs * dtheta) 
+		{
+			float r = 0, t = 0;
+			PONTO p;
+
+			for (r = 9 * draio;  ;r += 9 * draio) {
+				p = polarEmCartesiano(r, th, centro);
+				if (!pontoEstaDentro(&p))
+					break;
+						
+				// precisa dar tempo de chegar no proximo raio
+				t += 9 * dt;
+				dorme(9 * dt);
 				
-				col = (int)(th/dtheta);
-				centro->circle[lin][col] = p.self;
-			} else {
-				// direcao ja foi propagada: criterio de parada
-				insertItem(centro->radiais, th);
+				mapeiaPontoParaLago(&p);
+				
+				// 0.1 é para fazer a onda aparecer, 
+				//valores maiores de t "apagam" o seu contorno
+				p.h = calculaAltura(r, 0.1 * t);  
+				
+				// matriz lago eh compartilhado
+				#pragma omp critical 
+				{
+					atualizaPontoNoLago(&p);
+				}
 			}
 		}
+		printf("[Thread %d terminou]\n", id);	
 	}
 }
 
-void inicializaFocoOnda(PONTO* centro) {
-	int i, j;
-	int R = raioMax();
-
-	centro->radiais = initialize();
+void iniciaFocoDeOnda(PONTO* centro) {
 	centro->h = calculaAltura(0, 0);
-	centro->circle = (POSITION**) mallocSafe(R * sizeof(POSITION*));
-
-	for (i = 0; i < R; i++) {
-		centro->circle[i] = (POSITION*) mallocSafe(nradiais * sizeof(POSITION));
-
-		for (j = 0; j < nradiais; j++) {
-			centro->circle[i][j] = (POSITION) {0, 0};
-		}
-	}
 }
 
-void propagaOndaCircular(PONTO* centro) {
-	float r = 0, t = 0;
-	
-	while (centro->radiais->total < nradiais) {
-		// precisa dar tempo de chegar no proximo raio
-		r += 9 * draio;
-		t += 9 * dt;
-		dorme(9 * dt);
-		propagaOndaPorNivel(r, 0.1 * t, centro);
-	}
-	freeAll(centro->radiais);
-}
-
+// le arquivo de entrada
 void parser(FILE* entrada, char* argv2) {
-	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%d\n%f\n%f\n%d\n%f\n%d\n", 
+	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%f\n%f\n%f\n%d\n%f\n%d\n", 
 		&larg, &alt, &L, &H, &T, &v, &epsilon, &NIT, &prob, &semente);
 
-	printf("\nlarg = %d\n", larg);
-	printf("alt = %d\n", alt);
-	printf("L = %d\n", L);
-	printf("H = %d\n", H);
-	printf("T = %d\n", T);
-	printf("v = %f\n", v);
-	printf("epsilon = %f\n", epsilon);
-	printf("NIT = %d\n", NIT);
-	printf("prob = %f\n", prob);
-	printf("semente = %d\n", semente);
-	
 	nprocs = atoi(argv2);
 
 	if (nprocs <= 0) { 
 		nprocs = 1;
 	}
-
-	ALT = 10 * alt;
-	LARG = 10 * larg;
-	draio = (float)0.050;
-	dtheta = (float)(M_PI * 0.01);
-	H = ALT;
-	L = LARG;
-	nradiais = 2 * (int)(M_PI/dtheta);
-	dt = (float)(draio/v);
 }
 
+// probabilidade deve ser um flutuante entre 0 e 100, inclusive
 int temProximaGota() {
 	Randomize(semente);
 
-	if (RandomReal(0, 1) < 0.01 * prob) return 1;
+	if (RandomReal(0, 1) < (0.01 * prob)) return 1;
+	return 0;
+}
+
+/* ========================== Funções da gota =========================== */ 
+// inserir novo foco de onda
+void insereGota(POSITION nova) {
+	if (indexG < MAXGOTA) {
+		chuva[indexG++] = nova;
+	}
+}
+
+void removeGota(int posRemove) {
+	int i;
+	for (i = posRemove; i < indexG-1; i++) {
+		chuva[i] = chuva[i+1];
+	}
+	indexG--;
+}
+
+int existeGota() {
+	if (indexG)
+		return 1;
 	return 0;
 }

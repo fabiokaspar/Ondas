@@ -1,0 +1,66 @@
+Aluno: Fábio Eduardo Kaspar				NUSP: 7991166
+Profº Marco Dimas Gubitoso
+
+									MAC0431 - LEIAME					
+
+1) Linguagem ?
+
+R: O EP foi escrito na linguagem C.
+
+----------------------------------------------------------------------------------------
+2) Como compilar e rodar ?
+
+R: O EP compila e roda na plataforma GNU Linux (pelo menos no Ubuntu). 
+No terminal, digite (sem o '$'):
+
+$ make (para compilar e linkar)
+
+$ ./ep < arquivo_entrada > < num_processadores > (para rodar)
+
+Arquivos de saídas gerados:
+arquivo ondas.ppm + arquivo estatistica.txt
+
+----------------------------------------------------------------------------------------
+3) Dependências ?
+
+R: O ep depende da biblioteca matemática (calcula senos, cossenos, exponenciais, módulo e potência)
+libmath.
+
+Depende também do OpenMP.
+Não foi utilizado o MPI e portanto, o EP não depende dele.
+
+----------------------------------------------------------------------------------------
+4) O que foi implementado, o que não foi, e o que foi estabelecido no EP ?
+
+R: 
+
+	1) A onda é propagada e armazenada no lago. Superposição de ondas é levada em conta
+	na implementação, porém não foi implementada a redução da altura da onda de forma 
+	que a altura nos seus pontos seja decrementada com o passar do tempo.
+
+	2) A raio da onda (frente de onda) se desloca na matriz lago em função da velocidade
+	da onda.
+
+	3) Também percebi que o fundo branco fica melhor para a visualização do resultado e
+	por essa razão, achei melhor manter esta cor.
+
+	4) Para modelar o lago, de tamanho (larg, alt), foi utilizada uma matriz PONTO** lago, de
+	tamanho (20 * larg, 20 * alt), onde o 1/20 é o diametro de cada célula da matriz, e cada 
+	célula é representada como um círculo menor e de raio 1/40. 
+	Tal modelo serve para discretizar o lago e, portanto, a matriz de pixels, pois cada pixel
+	da imagem mapeia exatamente 1 célula do lago, e na mesma exata posição.
+	Logo, para a visualização do lago ser completa, e não apenas parcial, L deve ser 
+	20 * larg e H deve ser 20 * alt.
+
+	5) As unidades elementares:
+		a) draio: discretização do raio
+		b) dtheta: discretização do arco, em radianos
+		c) a função initializeVariables do ep.c contém as variáveis
+		que ajustam as dimensões do lago e a propagação da onda (draio, dt, theta)  
+
+	6) O arquivo estatistica.txt contém apenas os pontos do lago em que ocorreu algum evento,
+	para ele não ficar muito extenso e sobrecarregar o computador.
+
+	7) O restante foi implementado e testado.
+
+----------------------------------------------------------------------------------------
