@@ -1,6 +1,9 @@
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <omp.h>
 #include "estatistics.h"
+#include "globals.h"
 
 float average(Link head) {
     float media = 0.0;
@@ -38,4 +41,35 @@ float standardDeviation(Link head, float media) {
     dp = sqrt(dp);
 
     return dp;
+}
+
+void geraArquivoEstatistico() {
+    FILE* arq = fopen("estatistica.txt", "w");
+    int i, j;
+    float media, dp;
+
+    fprintf(arq, "pos.x | pos.y | media | desvio_padrao\n\n");
+
+    for (i = 0; i < H; i++) 
+    {
+        #pragma omp parallel for private(media, dp) 
+            for (j = 0; j < L; j++) 
+            {
+                media = 0;
+                dp = 0;
+                if (lago[i][j].alturas->total) {
+                    media = average(lago[i][j].alturas);
+                    dp = standardDeviation(lago[i][j].alturas, media);
+                    
+                    if (dp != 0 || media != 0) {
+                        #pragma omp critical
+                        {   fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
+                                lago[i][j].x, lago[i][j].y, media, dp); 
+                        }
+                    }
+                }       
+            }
+    }
+    printf("estatistica.txt gerado com sucesso\n");
+    fclose(arq);
 }

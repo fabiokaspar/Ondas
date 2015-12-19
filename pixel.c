@@ -6,20 +6,21 @@
 
 // tira uma foto da matriz lago
 void defineCorPixels() {
-	float delta, h;
+	// float delta;
+	// float h;
 	int i, j;
 
-	pmax = (-1) * pmax;
+	// pmax = (-1) * pmax;
 
-	if (hmax >= pmax) 
-		delta = hmax;
-	else 
-		delta = pmax;
+	// if (hmax >= pmax) 
+	// 	delta = hmax;
+	// else 
+	// 	delta = pmax;
 
-	delta = (float)(delta/(float)255);
+	// delta = (float)(delta/(float)255);
 
-	if (delta == 0)
-		delta = 1;
+	// if (delta == 0)
+	// 	delta = 1;
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
@@ -31,14 +32,14 @@ void defineCorPixels() {
 			
 			else if (h > 0) {
 				imagem[i][j].red = imagem[i][j].green = 0;
-				imagem[i][j].blue =	((int) ceil((double)(h/delta)));
+				imagem[i][j].blue =	0;
 			}
 
-			else {
-				h *= (-1);
-				imagem[i][j].blue = imagem[i][j].green = 0;
-				imagem[i][j].red = ((int) ceil((double)(h/delta)));
-			}
+			// else {
+			// 	h *= (-1);
+			// 	imagem[i][j].blue = imagem[i][j].green = 0;
+			// 	imagem[i][j].red = ((int) ceil((double)(h/delta)));
+			// }
 		}
 	}
 }

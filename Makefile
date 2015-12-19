@@ -7,13 +7,14 @@ headers = utils.h linkedList.h globals.h pixel.h ponto.h lago.h estatistics.h
 
 ep: $(objs)
 	$(cc) -o $@ $^ -fopenmp -lm
+	-rm -f *.gch *.o
 	@echo "\nCompilou!"
 
 ep.o: ep.c $(headers)
 	$(cc) -c $^ $(flags) -fopenmp -lm
 
-estatistics.o: estatistics.c estatistics.h
-	$(cc) -c $^ $(flags) -lm
+estatistics.o: estatistics.c estatistics.h globals.h
+	$(cc) -c $^ $(flags) -fopenmp -lm
 
 lago.o: lago.c utils.h lago.h linkedList.h globals.h
 	$(cc) -c $^ $(flags) -lm

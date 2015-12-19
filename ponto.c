@@ -29,8 +29,8 @@ PONTO sorteiaPonto(float xmax, float ymax) {
 	PONTO novo;
 
 	Randomize(semente);
-	novo.x = RandomReal(0.5, xmax);
-	novo.y = RandomReal(0.5, ymax);
+	novo.x = RandomReal(xmax/2, xmax/2);
+	novo.y = RandomReal(ymax/2, ymax/2);
 
 	return novo;
 }

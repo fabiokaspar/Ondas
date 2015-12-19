@@ -5,5 +5,6 @@
 
 float average(Link head);
 float standardDeviation(Link head, float media);
+void geraArquivoEstatistico();
 
 #endif
