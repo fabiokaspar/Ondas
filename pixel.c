@@ -7,7 +7,7 @@
 // tira uma foto da matriz lago
 void defineCorPixels() {
 	// float delta;
-	// float h;
+	double h;
 	int i, j;
 
 	// pmax = (-1) * pmax;
@@ -24,15 +24,15 @@ void defineCorPixels() {
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
-			h = imagem[i][j].pto->h;
+			h = lago[i][j].pto.h;
 			
 			if (h == 0) {
-				imagem[i][j].red = imagem[i][j].green = imagem[i][j].blue = 255;
+				lago[i][j].px.R = lago[i][j].px.G = lago[i][j].px.B = 255;
 			}
 			
 			else if (h > 0) {
-				imagem[i][j].red = imagem[i][j].green = 0;
-				imagem[i][j].blue =	0;
+				lago[i][j].px.R = lago[i][j].px.G = 0;
+				lago[i][j].px.B = 0;
 			}
 
 			// else {
@@ -42,24 +42,6 @@ void defineCorPixels() {
 			// }
 		}
 	}
-}
-
-void inicializaImagem() {
-	imagem = (PIXEL**) mallocSafe(H * sizeof(PIXEL*));
-	int i, j;
-
-	for (i = 0; i < H; i++) {
-		imagem[i] = mallocSafe(L * sizeof(PIXEL));
-
-		for (j = 0; j < L; j++)
-			imagem[i][j] = (PIXEL){255, 255, 255, &lago[i][j]};
-	}
-}
-
-void liberaImagem() {
-	int i;
-	for (i = 0; i < H; i++)
-		free(imagem[i]);	
 }
 
 // imprime a foto do lago no arquivo
@@ -72,7 +54,7 @@ void geraPPM(char* fname) {
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
-			fprintf(arq, "\n%d %d %d", imagem[i][j].red, imagem[i][j].green, imagem[i][j].blue);
+			fprintf(arq, "\n%d %d %d", lago[i][j].px.R, lago[i][j].px.G, lago[i][j].px.B);
 		}
 	}
 	fclose(arq);

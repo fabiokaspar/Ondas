@@ -2,24 +2,22 @@
 #define PONTO_H
 
 #include "linkedList.h"
-
-typedef struct ps {
-	int lin;
-	int col;
-} POSITION; // linha e coluna do lago
+#include "pixel.h"
 
 // NO PLANO CARTESIANO
 typedef struct ponto {
-	float x;
-	float y; 
-	float h;
-	POSITION self; // posição do ponto no lago: util para atualizar o h do ponto no lago
-	Link alturas;  // para armazenar o historico das alturas
+	double x, y, h;
 } PONTO;
 
+typedef struct polar {
+	double raio, theta; 
+	PONTO origem;
+} POLAR;
 
-PONTO polarEmCartesiano(float, float, PONTO*);
+PONTO polarEmCartesiano(POLAR* polar);
+POLAR cartesianoEmPolar(PONTO* cartesiano, PONTO* origem);
 PONTO sorteiaPonto(float xmax, float ymax);
-int pontoEstaDentro(PONTO*);
+int pontoEstaDentro(PONTO* x);
+double calculaDistancia(PONTO* p1, PONTO* p2);
 
 #endif

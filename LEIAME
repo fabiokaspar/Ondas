@@ -7,6 +7,7 @@ Profº Marco Dimas Gubitoso
 
 R: O EP foi escrito na linguagem C.
 
+gcc -o foo foo.c -lglut -lGLU -lGL -lm
 ----------------------------------------------------------------------------------------
 2) Como compilar e rodar ?
 

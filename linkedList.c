@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "linkedList.h"
 
-Link initialize() {
+Link initializeList() {
 	Link head = (Link)mallocSafe(sizeof(Node));
 	head->total = 0;
 	head->next = NULL;

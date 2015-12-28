@@ -9,7 +9,7 @@ typedef struct no {
 	Link next;
 } Node;
 
-Link initialize();
+Link initializeList();
 void freeAll(Link head);
 void insertItem(Link head, float altura);
 int searchItem(Link head, float altura);

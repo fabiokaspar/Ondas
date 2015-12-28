@@ -11,15 +11,34 @@ int pontoEstaDentro(PONTO* p) {
 	return 1;
 }
 
-// THETA EM RADIANOS
-PONTO polarEmCartesiano(float r, float theta, PONTO* origem) {
+PONTO polarEmCartesiano(POLAR* polar) {
 	PONTO p;
 
-	float cosTh = (float) cos ((double)theta);
-	float sinTh = (float) sin ((double)theta);
+	double r = polar->raio;
+	double cosTh = cos (polar->theta);
+	double sinTh = sin (polar->theta);
 		
-	p.x = origem->x + r * cosTh; 
-	p.y = origem->y + r * sinTh; 
+	p.x = polar->origem.x + r * cosTh; 
+	p.y = polar->origem.y + r * sinTh; 
+
+	return p;
+}
+
+double calculaDistancia(PONTO* p1, PONTO* p2) {
+	double d;
+
+	d = sqrt(pow(p1->x - p2->x , 2) + pow(p1->y - p2->y, 2));
+	return d;	
+}
+
+POLAR cartesianoEmPolar(PONTO* cartesiano, PONTO* origem) {
+	POLAR p;
+	double y = cartesiano->y;
+	double Oy = origem->y;
+
+	p.raio = calculaDistancia(cartesiano, origem);
+	p.theta = asin((y-Oy)/p.raio);
+	p.origem = (*origem);	
 
 	return p;
 }

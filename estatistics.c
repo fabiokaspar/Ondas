@@ -57,17 +57,17 @@ void geraArquivoEstatistico() {
             {
                 media = 0;
                 dp = 0;
-                if (lago[i][j].alturas->total) {
-                    media = average(lago[i][j].alturas);
-                    dp = standardDeviation(lago[i][j].alturas, media);
+               // if (lago[i][j].alturas->total) {
+                    //media = average(lago[i][j].alturas);
+                    //dp = standardDeviation(lago[i][j].alturas, media);
                     
                     if (dp != 0 || media != 0) {
                         #pragma omp critical
                         {   fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
-                                lago[i][j].x, lago[i][j].y, media, dp); 
+                                lago[i][j].pto.x, lago[i][j].pto.y, media, dp); 
                         }
                     }
-                }       
+              //  }       
             }
     }
     printf("estatistica.txt gerado com sucesso\n");

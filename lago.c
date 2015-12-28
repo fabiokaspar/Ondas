@@ -6,12 +6,12 @@
 #include "globals.h"
 
 // o ponto no lago recebe o sinal da onda, atualizando sua altura
-void atualizaPontoNoLago(PONTO* foco) {
-	int lin = foco->self.lin;
-	int col = foco->self.col;
+void atualizaPontoNoLago(NODE* node) {
+	int lin = node->pto.y/pixelHigh;
+	int col = node->pto.x/pixelWidth;
 
 	// incrementa com a altura ja existente (interferencia de ondas)
-	lago[lin][col].h += foco->h; 
+	lago[lin][col].pto.h += node->pto.h; 
 	// float modH = (float) fabs ((double)lago[lin][col].h);
 
 	// if (modH < epsilon)
@@ -27,36 +27,21 @@ void atualizaPontoNoLago(PONTO* foco) {
 	// 	pmax = lago[lin][col].h;
 }
 
-// atribui no proprio ponto sua posicao na matriz lago
-void mapeiaPontoParaLago(PONTO* p) {
-	int lin = (p->y/h);
-	int col = (p->x/l);
-
-	// printf("lin = %d\n", lin);
-	// printf("col = %d\n\n", col);
-	p->self.lin = lin;
-	p->self.col = col;
-}
-
 void inicializaPontosLago() {
-	int i, j, Cx, Cy;
-	float x, y;
-	lago = (PONTO**) mallocSafe(H * sizeof(PONTO*));
+	int ix, iy;
+	double cx, cy = 0.0;
 
-	Cy = 1;
-	for (i = 0; i < H; i++) {
-		lago[i] = mallocSafe(L * sizeof(PONTO));
+	lago = (NODE**) mallocSafe(H * sizeof(NODE*));
 
-		y = Cy * draio;
-		Cx = 1;
-		for (j = 0; j < L; j++) {			
-			x = Cx * draio;
-			Cx += 2;
+	for (iy = 0; iy < H; iy++) {
+		lago[iy] = mallocSafe(L * sizeof(NODE));
 
-			// (x, y, h, self, alturas) é o centro da célula
-			lago[i][j] = (PONTO){x, y, 0, (POSITION) {i, j}, NULL};
+		cx = 0.0;
+		for (ix = 0; ix < L; ix++) {			
+			lago[iy][ix] = (NODE) {(PONTO) {cx, cy, 0.0}, (PIXEL) {255, 255, 255}};
+			cx += pixelWidth;
 		}
-		Cy += 2;
+		cy += pixelHigh;
 	}
 }
 
@@ -65,7 +50,7 @@ void imprimeMatrizLago() {
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
-			printf("(%f, %f) ", lago[i][j].x, lago[i][j].y);
+			printf("(%f, %f) ", lago[i][j].pto.x, lago[i][j].pto.y);
 		}
 		printf("\n");
 	}
