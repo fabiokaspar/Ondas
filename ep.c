@@ -21,11 +21,8 @@ double R;
 void parser(FILE*, char*);
 void simula();
 void initialize();
-void circleMidPoint(int xc, int yc, int r);
 
 void geraCirculo(PONTO* centro, double r, double v);
-void Circulo(int xc, int yc, int r);
-void setPixel(int lin, int col);
 int temProximaGota();
 
 /* =================================================================== */ 
@@ -78,56 +75,6 @@ void simula() {
 	//Circulo((int)c.x, (int)c.y, (int)R);
 	geraPPM("ondas.ppm");
 }
-
-//http://www.tutorialspoint.com/computer_graphics/circle_generation_algorithm.htm
-void Circulo(int xc, int yc, int r) {
-	int x = 0;
-	int y = r;
-	int p = 1 - r;
-	
-	setPixel(xc + x, yc + y);
-	setPixel(xc - x, yc + y);
-	setPixel(xc + x, yc - y);
-	setPixel(xc - x, yc - y);
-	setPixel(xc + y, yc + x);
-	setPixel(xc - y, yc + x);
-	setPixel(xc + y, yc - x);
-	setPixel(xc - y, yc - x);
-
-	while (x < y) {
-		x++;
-		if (p < 0) {
-			p = p + 2*x + 1;
-		}
-		else {
-			y--;
-			p = p + 2*(x-y) + 1;
-		}
-		setPixel(xc + x, yc + y);
-		setPixel(xc - x, yc + y);
-		setPixel(xc + x, yc - y);
-		setPixel(xc - x, yc - y);
-		setPixel(xc + y, yc + x);
-		setPixel(xc - y, yc + x);
-		setPixel(xc + y, yc - x);
-		setPixel(xc - y, yc - x);
-	}
-}
-
-void setPixel(int lin, int col) {
-	lago[lin][col].px = (PIXEL) {0, 0, 0};
-	lago[lin][col+1].px = (PIXEL) {0, 0, 0};
-	lago[lin][col-1].px = (PIXEL) {0, 0, 0};
-	lago[lin+1][col].px = (PIXEL) {0, 0, 0};
-	lago[lin+1][col+1].px = (PIXEL) {0, 0, 0};
-	lago[lin+1][col-1].px = (PIXEL) {0, 0, 0};
-	lago[lin-1][col].px = (PIXEL) {0, 0, 0};
-	lago[lin-1][col+1].px = (PIXEL) {0, 0, 0};
-	lago[lin-1][col-1].px = (PIXEL) {0, 0, 0};
-
-	printf("lin:%d, col:%d\n", lin, col);
-}
-
 
 // le arquivo de entrada
 void parser(FILE* entrada, char* argv2) {

@@ -7,7 +7,9 @@ Profº Marco Dimas Gubitoso
 
 R: O EP foi escrito na linguagem C.
 
-gcc -o foo foo.c -lglut -lGLU -lGL -lm
+Allegro
+http://www.rafaeltoledo.net/compilando-e-instalando-a-biblioteca-allegro-5-no-ubuntu/
+
 ----------------------------------------------------------------------------------------
 2) Como compilar e rodar ?
 
