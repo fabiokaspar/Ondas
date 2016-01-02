@@ -18,7 +18,6 @@ double pixelWidth, pixelHigh;
 
 float dt; 			// tempo de deslocamento em draio da frente de onda
 float draio;
-float dtheta;
 float timestep;
 
 NODE **lago;		// matriz lago

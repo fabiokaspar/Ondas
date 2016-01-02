@@ -15,7 +15,6 @@ void varreCirculo(float cx, float cy, float r);
 
 const int LARGURA_TELA = 1024;
 const int ALTURA_TELA = 768;
-ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_BITMAP *bmp = NULL;
 
 int main(int argc, char** argv) {

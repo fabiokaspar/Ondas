@@ -6,7 +6,7 @@ objs = utils.o linkedList.o lago.o pixel.o ponto.o estatistics.o ep.o
 headers = utils.h linkedList.h globals.h pixel.h ponto.h lago.h estatistics.h
 
 ep: $(objs)
-	$(cc) -o $@ $^ -fopenmp -lm
+	$(cc) -o $@ $^ -fopenmp -lm -lallegro -lallegro_primitives -lallegro_image
 	-rm -f *.gch *.o
 	@echo "\nCompilou!"
 
