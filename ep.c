@@ -3,7 +3,7 @@
 #include "ponto.h"
 #include "globals.h"
 #include "pixel.h"
-#include "lago.h"
+#include "node.h"
 #include "estatistics.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <omp.h>
 #include <math.h>
+#include <string.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
@@ -18,7 +19,6 @@
 /* ========================== VARIAVEIS GLOBAIS =========================== */
 struct timeval iniciostep; 		  // contagem do tempo a cada timestep
 struct timeval t0;				  // contagem da simulação
-double R;
 ALLEGRO_BITMAP *bmp = NULL;
 
 #define FRACAO_FAIXA    0.70
@@ -27,18 +27,20 @@ ALLEGRO_BITMAP *bmp = NULL;
 void simula();
 int initialize();
 void initializeGlobals();
+void propagaOnda(NODE* centro);
+double altura(double r, double t);
 
-void geraCirculo(PONTO* centro, double r);
+void varreFaixa(int linIn, int linF, int colIn, int colF, double h, NODE* centro);
+void anulaOndaAnterior(NODE* centro);
+double geraOnda(NODE* centro, double r, double t);
+void geraCirculo(NODE* centro, double r, double h);
 int temProximaGota();
-void varreFaixa(int linIn, int linF, int colIn, int colF);
-void varreCirculo(float cx, float cy, float r);
-
 /* =================================================================== */ 
  
 int main(int argc, char **argv) {
 	FILE* entrada;
-	if (argc < 3) { 
-		fprintf(stderr, "formato exigido: ./ep <arquivo> <raio>\n");
+	if (argc < 2) { 
+		fprintf(stderr, "formato exigido: ./ep <arquivo>\n");
 		return 0; 
 	}
 	entrada = fopen(argv[1], "r");
@@ -48,10 +50,9 @@ int main(int argc, char **argv) {
 		exit(0);
 	}
 
-	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%f\n%f\n%f\n%d\n%f\n%d\n", 
+	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%lf\n%lf\n%lf\n%d\n%lf\n%d\n", 
 		&larg, &alt, &L, &H, &T, &v, &epsilon, &NIT, &prob, &semente);
 
-	R = atof(argv[2]);
 	//nprocs = atoi(argv[2]);
 
 	if (!initialize()) {
@@ -70,15 +71,127 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void initializeGlobals() {
-	pixelWidth = ((double)larg)/L;
-	pixelHigh = ((double)alt)/H;
-	draio = 0.0;
-	dt = (float)(draio/v);
-	timestep = (float)(T/NIT);
+void initializeGlobals() {     
+	pixelWidth = ((double)larg)/L;     
+	pixelHigh = ((double)alt)/H;     
+	draio = (double)fmax(pixelWidth, pixelHigh) * 1;     
+	dt = (double)(draio/v);     
+	timestep = (double)(T/NIT);     
+	hmax = 0;     
+	pmax = 0;
+	printf("pixelHigh = %f\n", pixelHigh);     
+	printf("pixelWidth = %f\n", pixelWidth); 
+}
+
+void simula() {
+	//node[H/2][L/2].pto.x = (double) (L/2) * pixelWidth; 
+	//node[H/2][L/2].pto.y = (double) (H/2) * pixelHigh;
+
+	propagaOnda(&node[H/2][L/2]);
+}
+
+void geraCirculo(NODE* centro, double r, double h) {
+    double cx, cy;
+	al_set_target_bitmap(bmp);
+    al_clear_to_color(al_map_rgb(255,255,255));
+    al_draw_circle(centro->pto.x, centro->pto.y, r, al_map_rgb(250, 0, 0), 2.0);
+	    
+    cx = centro->pto.x;
+    cy = centro->pto.y;
+    
+    varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
+        floor(cx-r-2), ceil(cx-FRACAO_FAIXA*r), h, centro);
+    
+    varreFaixa(floor(cy-r-2), ceil(cy-FRACAO_FAIXA*r), floor(cx-r), ceil(cx+r), h, centro);
+    varreFaixa(floor(cy+FRACAO_FAIXA*r), ceil(cy+r+2), floor(cx-r), ceil(cx+r), h, centro);
+    
+    varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
+        floor(cx+FRACAO_FAIXA*r), ceil(cx+r+2), h, centro);
+}
+
+void varreFaixa(int linIn, int linF, int colIn, int colF, double h, NODE* centro) {
+    int y, x;
+    unsigned char R;
+    unsigned char G;
+    unsigned char B;
+    ALLEGRO_COLOR cor;
+    Z2 item;
+
+    for (y = linIn; y <= linF; y++) {
+        for (x = colIn; x <= colF; x++) {
+        	if (x >= 0 && y >= 0 && x < L && y < H) {
+	            cor = al_get_pixel(bmp, x, y);
+	            al_unmap_rgb(cor, &R, &G, &B);
+
+	            if (R == 250) {
+	         		atualizaMatriz(y, x, h);
+	         		item.lin = y;
+	         		item.col = x;
+	         		insertLoc(centro->loc, item); 	
+            	}
+        	}
+		}
+	}
+}
+
+void anulaOndaAnterior(NODE* centro) {
+	Z2 item;
+	while(!isEmptyLoc(centro->loc)) {
+		item = getNextLoc(centro->loc);
+		node[item.lin][item.col].pto.h = 0;
+		removeLoc(centro->loc);
+	}
+}
+
+double geraOnda(NODE* centro, double r, double t) {
+	double h;
+	h = altura(r-1.5, t);
+	geraCirculo(centro, r-1.5, h);
+	h = altura(r+1.5, t);
+	geraCirculo(centro, r+1.5, h);
+	return h;
+}
+
+void propagaOnda(NODE* centro) {
+	double raio, t = 0;
+	/*double rx = fmax(centro->x, larg - centro->x);
+	double ry = fmax(centro->y, alt - centro->y);
+	raioMax = sqrt(rx * rx + ry * ry); */
+	char fname[50];
+	int cont = 1;
+	struct timeval in;
 	
-	printf("pixelHigh = %f\n", pixelHigh);
-	printf("pixelWidth = %f\n", pixelWidth);
+	gettimeofday(&in, NULL);
+	
+	while (cont <= 100) {
+		t += tempoDesdeInicio(in);
+		gettimeofday(&in, NULL);
+
+		raio = v * t;
+		geraOnda(centro, raio, t);
+		defineCorPixels();
+		anulaOndaAnterior(centro);
+		sprintf(fname, "out%d.ppm", cont);
+		geraPPM(fname);
+		cont++;
+	}
+}
+
+// probabilidade deve ser um flutuante entre 0 e 100, inclusive
+int temProximaGota() {
+	Randomize(semente);
+
+	if (RandomReal(0, 1) < (0.01 * prob)) return 1;
+	return 0;
+}
+
+double altura(double r, double t) {
+	double h;
+	double termo = r - v * t;
+	double expoente = (-1) * (termo * termo + t * 0.1);
+
+	h = termo * exp(expoente);
+	return h;
 }
 
 int initialize() {
@@ -96,7 +209,7 @@ int initialize() {
 
     if (!al_init_image_addon())
     {
-        fprintf(stderr, "Falha ao inicializar image_addon().\n");
+        fprintf(stderr, "Falha ao inicializar image_addon.\n");
         return 0;
     }
 
@@ -107,64 +220,4 @@ int initialize() {
     printf("width = %d\n\n", w);
     
     return 1;
-}
-
-void simula() {
-	PONTO centro;
-	centro.x = (double) (L/2) * pixelWidth;
-	centro.y = (double) (H/2) * pixelHigh;
-
-	geraCirculo(&centro, R);
-	defineCorPixels();
-	geraPPM("ondas.ppm");
-}
-
-void geraCirculo(PONTO* centro, double r) {
-	al_set_target_bitmap(bmp);
-    al_clear_to_color(al_map_rgb(255,255,255));
-    al_draw_circle(centro->x, centro->y, r, al_map_rgb(250, 0, 0), 1.0);
-    
-    varreCirculo(centro->x, centro->y, r);
-}
-
-void varreCirculo(float cx, float cy, float r) {
-    varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
-        floor(cx-r-2), ceil(cx-FRACAO_FAIXA*r));
-    
-    varreFaixa(floor(cy-r-2), ceil(cy-FRACAO_FAIXA*r), floor(cx-r), ceil(cx+r));
-    varreFaixa(floor(cy+FRACAO_FAIXA*r), ceil(cy+r+2), floor(cx-r), ceil(cx+r));
-    
-    varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
-        floor(cx+FRACAO_FAIXA*r), ceil(cx+r+2));
-}
-
-void varreFaixa(int linIn, int linF, int colIn, int colF) {
-    int y, x;
-    unsigned char R;
-    unsigned char G;
-    unsigned char B;
-    ALLEGRO_COLOR cor;
-
-    for (y = linIn; y <= linF; y++) {
-        for (x = colIn; x <= colF; x++) {
-        	if (x >= 0 && y >= 0 && x < L && y < H) {
-	            cor = al_get_pixel(bmp, x, y);
-	            al_unmap_rgb(cor, &R, &G, &B);
-
-	            if (R == 250) {
-	                cor = al_map_rgb(0, 0, 0);
-	                //al_put_pixel(x, y, cor);
-	            	lago[y][x].pto.h = 50;
-            	}
-        	}
-        }
-    }
-}
-
-// probabilidade deve ser um flutuante entre 0 e 100, inclusive
-int temProximaGota() {
-	Randomize(semente);
-
-	if (RandomReal(0, 1) < (0.01 * prob)) return 1;
-	return 0;
 }

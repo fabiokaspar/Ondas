@@ -1,12 +1,12 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "lago.h"
+#include "node.h"
 
 int semente, NIT;
 int nprocs;
-float epsilon, prob, v, T;
-float hmax, pmax; 	// altura e profundidade max.
+double epsilon, prob, v, T;
+double hmax, pmax; 	// altura e profundidade max.
 
 
 int L, H; 			// matriz de pixels
@@ -16,10 +16,10 @@ double pixelWidth, pixelHigh;
 // DAQUI PARA FRENTE:
 // RAIO e ANGULO sao relativos ao ponto de queda da gota
 
-float dt; 			// tempo de deslocamento em draio da frente de onda
-float draio;
-float timestep;
+double dt; 			// tempo de deslocamento em draio da frente de onda
+double draio;
+double timestep;
 
-NODE **lago;		// matriz lago
+NODE **node;		// matriz node
 
 #endif

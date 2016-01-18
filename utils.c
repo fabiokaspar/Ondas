@@ -58,12 +58,12 @@ void Randomize(int seed)
     srand(seed + time (NULL));
 }
 
-float tempoDesdeInicio(struct timeval inicio) {
+double tempoDesdeInicio(struct timeval inicio) {
 	struct timeval fim;
-	float timedif;
+	double timedif;
 	gettimeofday(&fim, NULL);
-	timedif = (float)(fim.tv_sec - inicio.tv_sec);
-	timedif += (float)(fim.tv_usec - inicio.tv_usec)/1000000;
+	timedif = (double)(fim.tv_sec - inicio.tv_sec);
+	timedif += (double)(fim.tv_usec - inicio.tv_usec)/1000000;
 	return timedif;
 }
 

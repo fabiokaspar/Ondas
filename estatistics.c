@@ -4,9 +4,13 @@
 #include <omp.h>
 #include "estatistics.h"
 #include "globals.h"
+#include "linkedList.h"
 
-float average(Link head) {
-    float media = 0.0;
+static double average(Link head);
+static double standardDeviation(Link head, double media);
+
+static double average(Link head) {
+    double media = 0.0;
     int N = head->total;
     Link lk;
 
@@ -22,9 +26,9 @@ float average(Link head) {
     return media;
 }
 
-float standardDeviation(Link head, float media) {
-    float dp = 0.0;
-    float dif;
+static double standardDeviation(Link head, double media) {
+    double dp = 0.0;
+    double dif;
     int N = head->total;
     Link lk;
 
@@ -43,10 +47,10 @@ float standardDeviation(Link head, float media) {
     return dp;
 }
 
-void geraArquivoEstatistico() {
-    FILE* arq = fopen("estatistica.txt", "w");
+void geraArquivoEstatistico(char* fname) {
+    FILE* arq = fopen(fname, "w");
     int i, j;
-    float media, dp;
+    double media, dp;
 
     fprintf(arq, "pos.x | pos.y | media | desvio_padrao\n\n");
 
@@ -57,19 +61,18 @@ void geraArquivoEstatistico() {
             {
                 media = 0;
                 dp = 0;
-               // if (lago[i][j].alturas->total) {
-                    //media = average(lago[i][j].alturas);
-                    //dp = standardDeviation(lago[i][j].alturas, media);
+                if (node[i][j].hist->total) {
+                    media = average(node[i][j].hist);
+                    dp = standardDeviation(node[i][j].hist, media);
                     
-                    if (dp != 0 || media != 0) {
-                        #pragma omp critical
-                        {   fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
-                                lago[i][j].pto.x, lago[i][j].pto.y, media, dp); 
-                        }
+                    if (media != 0) {
+                    
+                       fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
+                                node[i][j].pto.x, node[i][j].pto.y, media, dp); 
+                        
                     }
-              //  }       
+                }       
             }
     }
-    printf("estatistica.txt gerado com sucesso\n");
     fclose(arq);
 }

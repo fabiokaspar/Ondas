@@ -2,8 +2,8 @@ cc=gcc
 flags= -g -Wall
 
 exec = ep
-objs = utils.o linkedList.o lago.o pixel.o ponto.o estatistics.o ep.o
-headers = utils.h linkedList.h globals.h pixel.h ponto.h lago.h estatistics.h
+objs = utils.o linkedList.o node.o pixel.o ponto.o estatistics.o ep.o
+headers = utils.h linkedList.h globals.h pixel.h ponto.h node.h estatistics.h
 
 ep: $(objs)
 	$(cc) -o $@ $^ -fopenmp -lm -lallegro -lallegro_primitives -lallegro_image
@@ -16,7 +16,7 @@ ep.o: ep.c $(headers)
 estatistics.o: estatistics.c estatistics.h globals.h
 	$(cc) -c $^ $(flags) -fopenmp -lm
 
-lago.o: lago.c utils.h lago.h linkedList.h globals.h
+node.o: node.c utils.h node.h linkedList.h globals.h
 	$(cc) -c $^ $(flags) -lm
 
 linkedList.o: linkedList.c utils.h linkedList.h

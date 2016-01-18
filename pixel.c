@@ -4,47 +4,44 @@
 #include "utils.h"
 #include "globals.h"
 
-// tira uma foto da matriz lago
+// tira uma foto da matriz node
 void defineCorPixels() {
-	// float delta;
+	double delta;
 	double h;
 	int i, j;
 
-	// pmax = (-1) * pmax;
+	pmax = (-1) * pmax;
 
-	// if (hmax >= pmax) 
-	// 	delta = hmax;
-	// else 
-	// 	delta = pmax;
+	delta = (double)fmax(pmax, hmax);
 
-	// delta = (float)(delta/(float)255);
+	delta = delta/255;
 
-	// if (delta == 0)
-	// 	delta = 1;
+	if (delta == 0)
+		delta = 1;
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
-			h = lago[i][j].pto.h;
+			h = node[i][j].pto.h;
 			
 			if (h == 0) {
-				lago[i][j].px.R = lago[i][j].px.G = lago[i][j].px.B = 255;
+				node[i][j].px.R = node[i][j].px.G = node[i][j].px.B = 0;
 			}
 			
 			else if (h > 0) {
-				lago[i][j].px.R = lago[i][j].px.G = 0;
-				lago[i][j].px.B = 0;
+				node[i][j].px.R = node[i][j].px.G = 0;
+				node[i][j].px.B = (unsigned char)ceil(h/delta);
 			}
 
-			// else {
-			// 	h *= (-1);
-			// 	imagem[i][j].blue = imagem[i][j].green = 0;
-			// 	imagem[i][j].red = ((int) ceil((double)(h/delta)));
-			// }
+			else {
+			 	h *= (-1);
+			 	node[i][j].px.B = node[i][j].px.G = 0;
+			 	node[i][j].px.R = (unsigned char)ceil(h/delta);
+			}
 		}
 	}
 }
 
-// imprime a foto do lago no arquivo
+// imprime a foto do node no arquivo
 void geraPPM(char* fname) {
 	FILE* arq = fopen(fname, "w");
 	int i, j;
@@ -54,7 +51,7 @@ void geraPPM(char* fname) {
 
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < L; j++) {
-			fprintf(arq, "\n%d %d %d", lago[i][j].px.R, lago[i][j].px.G, lago[i][j].px.B);
+			fprintf(arq, "\n%d %d %d", node[i][j].px.R, node[i][j].px.G, node[i][j].px.B);
 		}
 	}
 	fclose(arq);

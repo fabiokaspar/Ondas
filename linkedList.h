@@ -11,7 +11,7 @@ typedef struct no {
 
 Link initializeList();
 void freeAll(Link head);
-void insertItem(Link head, float altura);
-int searchItem(Link head, float altura);
+void insertItem(Link head, double altura);
+int searchItem(Link head, double altura);
 
 #endif

@@ -9,7 +9,7 @@ Link initializeList() {
 	return head;
 }
 
-void insertItem(Link head, float altura) {
+void insertItem(Link head, double altura) {
 	Link novo = (Link) mallocSafe(sizeof(Node));
 	novo->altura = altura;
 	Link lk;
@@ -23,7 +23,7 @@ void insertItem(Link head, float altura) {
 	head->total++;
 }
 
-int searchItem(Link head, float altura) {
+int searchItem(Link head, double altura) {
 	Link lk;
 
 	if (head->total) {
