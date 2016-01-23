@@ -74,8 +74,6 @@ int main(int argc, char **argv) {
 void initializeGlobals() {     
 	pixelWidth = ((double)larg)/L;     
 	pixelHigh = ((double)alt)/H;     
-	draio = (double)fmax(pixelWidth, pixelHigh) * 1;     
-	dt = (double)(draio/v);     
 	timestep = (double)(T/NIT);     
 	hmax = 0;     
 	pmax = 0;
@@ -87,7 +85,7 @@ void simula() {
 	//node[H/2][L/2].pto.x = (double) (L/2) * pixelWidth; 
 	//node[H/2][L/2].pto.y = (double) (H/2) * pixelHigh;
 
-	propagaOnda(&node[H/2][L/2]);
+	propagaOnda(&node[H-200][L/4]);
 }
 
 void geraCirculo(NODE* centro, double r, double h) {
@@ -153,17 +151,17 @@ double geraOnda(NODE* centro, double r, double t) {
 }
 
 void propagaOnda(NODE* centro) {
-	double raio, t = 0;
-	/*double rx = fmax(centro->x, larg - centro->x);
-	double ry = fmax(centro->y, alt - centro->y);
-	raioMax = sqrt(rx * rx + ry * ry); */
+	double raio = 0, t = 0;
+	double rx = fmax(centro->pto.x, larg - centro->pto.x);
+	double ry = fmax(centro->pto.y, alt - centro->pto.y);
+	double raioMax = sqrt(rx * rx + ry * ry);
 	char fname[50];
 	int cont = 1;
 	struct timeval in;
 	
 	gettimeofday(&in, NULL);
 	
-	while (cont <= 100) {
+	while (raio < raioMax) {
 		t += tempoDesdeInicio(in);
 		gettimeofday(&in, NULL);
 

@@ -16,8 +16,6 @@ double pixelWidth, pixelHigh;
 // DAQUI PARA FRENTE:
 // RAIO e ANGULO sao relativos ao ponto de queda da gota
 
-double dt; 			// tempo de deslocamento em draio da frente de onda
-double draio;
 double timestep;
 
 NODE **node;		// matriz node
