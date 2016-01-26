@@ -9,6 +9,8 @@ R: O EP foi escrito na linguagem C.
 
 Allegro
 http://www.rafaeltoledo.net/compilando-e-instalando-a-biblioteca-allegro-5-no-ubuntu/
+openmpi:
+http://selalib.gforge.inria.fr/install/ubuntu.html
 
 ----------------------------------------------------------------------------------------
 2) Como compilar e rodar ?
@@ -30,7 +32,6 @@ R: O ep depende da biblioteca matemática (calcula senos, cossenos, exponenciais
 libmath.
 
 Depende também do OpenMP.
-Não foi utilizado o MPI e portanto, o EP não depende dele.
 
 ----------------------------------------------------------------------------------------
 4) O que foi implementado, o que não foi, e o que foi estabelecido no EP ?

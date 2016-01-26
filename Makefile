@@ -6,12 +6,12 @@ objs = utils.o linkedList.o node.o pixel.o ponto.o estatistics.o ep.o
 headers = utils.h linkedList.h globals.h pixel.h ponto.h node.h estatistics.h
 
 ep: $(objs)
-	$(cc) -o $@ $^ -fopenmp -lm -lallegro -lallegro_primitives -lallegro_image
+	mpicc -o $@ $^ -fopenmp -lm -lallegro -lallegro_primitives -lallegro_image
 	-rm -f *.gch *.o
 	@echo "\nCompilou!"
 
 ep.o: ep.c $(headers)
-	$(cc) -c $^ $(flags) -fopenmp -lm
+	mpicc -c $^ $(flags) -fopenmp -lm
 
 estatistics.o: estatistics.c estatistics.h globals.h
 	$(cc) -c $^ $(flags) -fopenmp -lm

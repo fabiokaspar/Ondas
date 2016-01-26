@@ -5,13 +5,16 @@
 #include "pixel.h"
 #include "node.h"
 #include "estatistics.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <omp.h>
-#include <math.h>
 #include <string.h>
+
+#include <math.h>
+#include <omp.h>
+#include <mpi.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
@@ -21,7 +24,7 @@ struct timeval iniciostep; 		  // contagem do tempo a cada timestep
 struct timeval t0;				  // contagem da simulação
 ALLEGRO_BITMAP *bmp = NULL;
 
-#define FRACAO_FAIXA    0.70
+#define FRACAO_FAIXA    1.10
 
 /* ========================== PROTOTIPOS =========================== */ 
 void simula();
@@ -39,6 +42,8 @@ int temProximaGota();
  
 int main(int argc, char **argv) {
 	FILE* entrada;
+	int size, rank;
+
 	if (argc < 2) { 
 		fprintf(stderr, "formato exigido: ./ep <arquivo>\n");
 		return 0; 
@@ -49,6 +54,11 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "ERRO ao abrir arquivo %s .\n", argv[1]); 
 		exit(0);
 	}
+
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	printf("[Process %d of %d]\n", rank, size);
 
 	fscanf(entrada,"(%d,%d)\n(%d,%d)\n%lf\n%lf\n%lf\n%d\n%lf\n%d\n", 
 		&larg, &alt, &L, &H, &T, &v, &epsilon, &NIT, &prob, &semente);
@@ -68,6 +78,8 @@ int main(int argc, char **argv) {
 	
 	fclose(entrada);
 	liberaLago();
+
+	MPI_Finalize();
 	return 0;
 }
 
@@ -82,10 +94,8 @@ void initializeGlobals() {
 }
 
 void simula() {
-	//node[H/2][L/2].pto.x = (double) (L/2) * pixelWidth; 
-	//node[H/2][L/2].pto.y = (double) (H/2) * pixelHigh;
 
-	propagaOnda(&node[H-200][L/4]);
+	propagaOnda(&node[H/2][L/2]);
 }
 
 void geraCirculo(NODE* centro, double r, double h) {
@@ -96,15 +106,19 @@ void geraCirculo(NODE* centro, double r, double h) {
 	    
     cx = centro->pto.x;
     cy = centro->pto.y;
-    
     varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
+        floor(cx - FRACAO_FAIXA * r), ceil(cx + FRACAO_FAIXA * r), h, centro);
+    
+    /* varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
         floor(cx-r-2), ceil(cx-FRACAO_FAIXA*r), h, centro);
     
+
     varreFaixa(floor(cy-r-2), ceil(cy-FRACAO_FAIXA*r), floor(cx-r), ceil(cx+r), h, centro);
     varreFaixa(floor(cy+FRACAO_FAIXA*r), ceil(cy+r+2), floor(cx-r), ceil(cx+r), h, centro);
     
     varreFaixa(floor(cy-FRACAO_FAIXA*r), ceil(cy+FRACAO_FAIXA*r), 
         floor(cx+FRACAO_FAIXA*r), ceil(cx+r+2), h, centro);
+	*/
 }
 
 void varreFaixa(int linIn, int linF, int colIn, int colF, double h, NODE* centro) {
