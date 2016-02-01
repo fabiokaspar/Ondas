@@ -8,12 +8,16 @@
 
 // incrementa com a altura ja existente (interferencia de ondas)
 void atualizaMatriz(int lin, int col, double h) {	
+	double fin;
+
 	node[lin][col].pto.h += h;
-	double fin = node[lin][col].pto.h;
+	fin = node[lin][col].pto.h;
 
 	if (fin * fin < epsilon * epsilon)
 		node[lin][col].pto.h = 0.0;
 
+	fin = node[lin][col].pto.h;
+	
 	if (fin > hmax)
 		hmax = fin;
 	
@@ -21,7 +25,7 @@ void atualizaMatriz(int lin, int col, double h) {
 		pmax = fin;
 	            	
 	// armazena no histórico de alturas do ponto
-	//insertItem(node[lin][col].hist, node[lin][col].pto.h);
+	insertItem(node[lin][col].hist, fin);
 }
 
 Location* initializeLoc() {

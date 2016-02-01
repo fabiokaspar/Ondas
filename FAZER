@@ -1,2 +1,8 @@
-- espessura da circunferencia da onda
 - refatorar (eliminar más praticas)
+- instruir instalação das bibliotecas
+
+- tirar funções sem uso
+- remover alguns printfs
+- comentarios
+- melhorar o geraArquivoEstatistico
+- tirar o compilou

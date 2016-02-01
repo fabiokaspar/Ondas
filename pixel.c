@@ -1,5 +1,6 @@
-#include <math.h>
 #include <stdio.h>
+#include <math.h>
+#include <omp.h>
 #include "pixel.h"
 #include "utils.h"
 #include "globals.h"
@@ -10,35 +11,34 @@ void defineCorPixels() {
 	double h;
 	int i, j;
 
-	pmax = (-1) * pmax;
-
-	delta = (double)fmax(pmax, hmax);
+	delta = (double) fmax((-1) * pmax, hmax);
 
 	delta = delta/255;
 
 	if (delta == 0)
 		delta = 1;
 
-	for (i = 0; i < H; i++) {
-		for (j = 0; j < L; j++) {
-			h = node[i][j].pto.h;
-			
-			if (h == 0) {
-				node[i][j].px.R = node[i][j].px.G = node[i][j].px.B = 0;
-			}
-			
-			else if (h > 0) {
-				node[i][j].px.R = node[i][j].px.G = 0;
-				node[i][j].px.B = (unsigned char)ceil(h/delta);
-			}
+	#pragma omp parallel for private(j, h) schedule(dynamic)
+		for (i = 0; i < H; i++) {
+			for (j = 0; j < L; j++) {
+				h = node[i][j].pto.h;
+				
+				if (h == 0) {
+					node[i][j].px.R = node[i][j].px.G = node[i][j].px.B = 0;
+				}
+				
+				else if (h > 0) {
+					node[i][j].px.R = node[i][j].px.G = 0;
+					node[i][j].px.B = (unsigned char)ceil(h/delta);
+				}
 
-			else {
-			 	h *= (-1);
-			 	node[i][j].px.B = node[i][j].px.G = 0;
-			 	node[i][j].px.R = (unsigned char)ceil(h/delta);
+				else {
+				 	h *= (-1);
+				 	node[i][j].px.B = node[i][j].px.G = 0;
+				 	node[i][j].px.R = (unsigned char)ceil(h/delta);
+				}
 			}
 		}
-	}
 }
 
 // imprime a foto do node no arquivo

@@ -4,7 +4,7 @@
 typedef struct no* Link;
 
 typedef struct no {
-	float altura;
+	double altura;
 	int total;
 	Link next;
 } Node;
@@ -12,6 +12,5 @@ typedef struct no {
 Link initializeList();
 void freeAll(Link head);
 void insertItem(Link head, double altura);
-int searchItem(Link head, double altura);
 
 #endif

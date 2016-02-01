@@ -7,6 +7,7 @@
 typedef struct z2 {
 	int lin;
 	int col;
+	double h;
 } Z2;
 
 typedef struct location {

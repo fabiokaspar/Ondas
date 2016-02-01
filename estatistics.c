@@ -6,10 +6,10 @@
 #include "globals.h"
 #include "linkedList.h"
 
-static double average(Link head);
-static double standardDeviation(Link head, double media);
+static double Media(Link head);
+static double DesvioPadrao(Link head, double media);
 
-static double average(Link head) {
+static double Media(Link head) {
     double media = 0.0;
     int N = head->total;
     Link lk;
@@ -18,7 +18,7 @@ static double average(Link head) {
         return 0.0;
 
     for (lk = head->next; lk != NULL; lk = lk->next) {
-      media += lk->altura;
+        media += lk->altura;
     }
 
     media /= N;
@@ -26,7 +26,7 @@ static double average(Link head) {
     return media;
 }
 
-static double standardDeviation(Link head, double media) {
+static double DesvioPadrao(Link head, double media) {
     double dp = 0.0;
     double dif;
     int N = head->total;
@@ -52,24 +52,23 @@ void geraArquivoEstatistico(char* fname) {
     int i, j;
     double media, dp;
 
-    fprintf(arq, "pos.x | pos.y | media | desvio_padrao\n\n");
+    fprintf(arq, "pos.x | pos.y | media | desvio padrão\n\n");
 
-    for (i = 0; i < H; i++) 
+    for (i = 0; i < H; i++)
     {
-        #pragma omp parallel for private(media, dp) 
-            for (j = 0; j < L; j++) 
+        #pragma omp parallel for private(media, dp) schedule(dynamic) ordered
+            for (j = 0; j < L; j++)
             {
                 media = 0;
                 dp = 0;
-                if (node[i][j].hist->total) {
-                    media = average(node[i][j].hist);
-                    dp = standardDeviation(node[i][j].hist, media);
+                if (node[i][j].hist->total > 0) {
+                    media = Media(node[i][j].hist);
+                    dp = DesvioPadrao(node[i][j].hist, media);
                     
-                    if (media != 0) {
-                    
-                       fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
-                                node[i][j].pto.x, node[i][j].pto.y, media, dp); 
-                        
+                    #pragma omp ordered
+                    {
+                        fprintf(arq, "%12.7f | %12.7f | %12.7f | %12.7f\n", 
+                            node[i][j].pto.x, node[i][j].pto.y, media, dp); 
                     }
                 }       
             }
